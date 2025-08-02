@@ -1,0 +1,163 @@
+image: gitpod/workspace-full
+
+ports:
+  - port: 5000
+    onOpen: ignore
+    description: "Scenario Generator Service"
+  - port: 5001
+    onOpen: ignore
+    description: "Visual Content Generator Service"
+  - port: 5002
+    onOpen: ignore
+    description: "Audio Content Generator Service"
+  - port: 5003
+    onOpen: ignore
+    description: "Movie Editor Service"
+  - port: 5173
+    onOpen: open-browser
+    description: "AI Movie Studio - Main Interface"
+
+tasks:
+  - name: Setup Python Environment
+    init: |
+      # Install Python dependencies for all services
+      echo "Setting up Python environments..."
+      
+      # Scenario Generator
+      cd scenario_generator
+      python -m venv venv
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      deactivate
+      cd ..
+      
+      # Visual Generator
+      cd visual_generator
+      python -m venv venv
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      deactivate
+      cd ..
+      
+      # Audio Generator
+      cd audio_generator
+      python -m venv venv
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      deactivate
+      cd ..
+      
+      # Movie Editor
+      cd movie_editor
+      python -m venv venv
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      deactivate
+      cd ..
+      
+      echo "Python environments setup complete!"
+    
+    command: |
+      echo "Starting backend services..."
+      
+      # Start Scenario Generator
+      cd scenario_generator
+      source venv/bin/activate
+      python src/main.py &
+      SCENARIO_PID=$!
+      cd ..
+      
+      # Start Visual Generator
+      cd visual_generator
+      source venv/bin/activate
+      python src/main.py &
+      VISUAL_PID=$!
+      cd ..
+      
+      # Start Audio Generator
+      cd audio_generator
+      source venv/bin/activate
+      python src/main.py &
+      AUDIO_PID=$!
+      cd ..
+      
+      # Start Movie Editor
+      cd movie_editor
+      source venv/bin/activate
+      python src/main.py &
+      EDITOR_PID=$!
+      cd ..
+      
+      echo "All backend services started!"
+      echo "Scenario Generator (PID: $SCENARIO_PID) - http://localhost:5000"
+      echo "Visual Generator (PID: $VISUAL_PID) - http://localhost:5001"
+      echo "Audio Generator (PID: $AUDIO_PID) - http://localhost:5002"
+      echo "Movie Editor (PID: $EDITOR_PID) - http://localhost:5003"
+      
+      # Keep services running
+      wait
+
+  - name: Setup Frontend
+    init: |
+      echo "Setting up frontend..."
+      cd ai-movie-studio
+      npm install
+      echo "Frontend setup complete!"
+    
+    command: |
+      echo "Starting frontend development server..."
+      cd ai-movie-studio
+      npm run dev -- --host
+      
+  - name: Project Info
+    command: |
+      echo "🎬 AI Movie Agent - وكيل الذكاء الاصطناعي لإنتاج الأفلام"
+      echo "=================================================="
+      echo ""
+      echo "🚀 Services:"
+      echo "  • Main Interface: http://localhost:5173"
+      echo "  • Scenario Generator: http://localhost:5000"
+      echo "  • Visual Generator: http://localhost:5001"
+      echo "  • Audio Generator: http://localhost:5002"
+      echo "  • Movie Editor: http://localhost:5003"
+      echo ""
+      echo "📖 Documentation: README.md"
+      echo "🔧 Configuration: .gitpod.yml"
+      echo ""
+      echo "⚡ Quick Start:"
+      echo "  1. Wait for all services to start"
+      echo "  2. Open the main interface (port 5173)"
+      echo "  3. Create a new movie project"
+      echo "  4. Follow the workflow tabs"
+      echo ""
+      echo "🎯 All services are starting automatically!"
+      echo "Please wait a few moments for everything to be ready."
+
+vscode:
+  extensions:
+    - ms-python.python
+    - ms-python.flake8
+    - ms-python.pylint
+    - bradlc.vscode-tailwindcss
+    - esbenp.prettier-vscode
+    - ms-vscode.vscode-json
+    - redhat.vscode-yaml
+    - ms-vscode.vscode-typescript-next
+    - formulahendry.auto-rename-tag
+    - christian-kohler.path-intellisense
+    - ms-python.black-formatter
+
+github:
+  prebuilds:
+    master: true
+    branches: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: true
+    addComment: false
+    addBadge: true
+

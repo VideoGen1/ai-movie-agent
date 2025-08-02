@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وكيل الذكاء الاصطناعي لإنتاج الأفلام - توليد السيناريو</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result-section.show {
+            display: block;
+        }
+        
+        .scenario-text {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .movies-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .movie-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .movie-item:hover {
+            transform: translateX(-5px);
+        }
+        
+        .movie-item.selected {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 وكيل الذكاء الاصطناعي لإنتاج الأفلام</h1>
+            <p>وحدة توليد السيناريو والقصة</p>
+        </div>
+        
+        <div class="content">
+            <!-- قائمة الأفلام الموجودة -->
+            <div class="movies-list">
+                <h3>الأفلام الموجودة</h3>
+                <div id="moviesList"></div>
+            </div>
+            
+            <!-- نموذج إنشاء فيلم جديد -->
+            <div class="form-section">
+                <h3>إنشاء فيلم جديد</h3>
+                <form id="movieForm">
+                    <div class="form-group">
+                        <label for="title">عنوان الفيلم:</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="genre">نوع الفيلم:</label>
+                        <select id="genre" name="genre">
+                            <option value="">اختر النوع</option>
+                            <option value="دراما">دراما</option>
+                            <option value="كوميديا">كوميديا</option>
+                            <option value="أكشن">أكشن</option>
+                            <option value="رومانسي">رومانسي</option>
+                            <option value="تشويق">تشويق</option>
+                            <option value="خيال علمي">خيال علمي</option>
+                            <option value="تاريخي">تاريخي</option>
+                            <option value="وثائقي">وثائقي</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="theme">موضوع الفيلم:</label>
+                        <input type="text" id="theme" name="theme" placeholder="مثال: الصداقة، العدالة، الحب، إلخ">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="initial_idea">الفكرة الأولية:</label>
+                        <textarea id="initial_idea" name="initial_idea" placeholder="اكتب فكرة الفيلم الأساسية هنا..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">إنشاء فيلم جديد</button>
+                </form>
+            </div>
+            
+            <!-- أزرار التحكم -->
+            <div class="form-section">
+                <h3>إنتاج السيناريو</h3>
+                <p>اختر فيلماً من القائمة أعلاه ثم استخدم الأزرار التالية:</p>
+                <button id="generateScenario" class="btn" disabled>توليد السيناريو</button>
+                <button id="generateCharacters" class="btn" disabled>توليد الشخصيات</button>
+                <button id="generateScenes" class="btn" disabled>تقسيم المشاهد</button>
+            </div>
+            
+            <!-- منطقة النتائج -->
+            <div id="results" class="result-section">
+                <h3>النتائج</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedMovieId = null;
+        
+        // تحميل قائمة الأفلام عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMovies();
+        });
+        
+        // تحميل قائمة الأفلام
+        async function loadMovies() {
+            try {
+                const response = await fetch('/api/movies');
+                const movies = await response.json();
+                
+                const moviesList = document.getElementById('moviesList');
+                if (movies.length === 0) {
+                    moviesList.innerHTML = '<p>لا توجد أفلام. قم بإنشاء فيلم جديد.</p>';
+                } else {
+                    moviesList.innerHTML = movies.map(movie => `
+                        <div class="movie-item" onclick="selectMovie(${movie.id})">
+                            <h4>${movie.title}</h4>
+                            <p><strong>النوع:</strong> ${movie.genre || 'غير محدد'}</p>
+                            <p><strong>الحالة:</strong> ${getStatusText(movie.status)}</p>
+                            <p><strong>تاريخ الإنشاء:</strong> ${new Date(movie.created_at).toLocaleDateString('ar')}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الأفلام:', error);
+            }
+        }
+        
+        // اختيار فيلم
+        function selectMovie(movieId) {
+            selectedMovieId = movieId;
+            
+            // إزالة التحديد من جميع الأفلام
+            document.querySelectorAll('.movie-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // تحديد الفيلم المختار
+            event.target.closest('.movie-item').classList.add('selected');
+            
+            // تفعيل الأزرار
+            document.getElementById('generateScenario').disabled = false;
+            document.getElementById('generateCharacters').disabled = false;
+            document.getElementById('generateScenes').disabled = false;
+        }
+        
+        // إنشاء فيلم جديد
+        document.getElementById('movieForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const movieData = {
+                title: formData.get('title'),
+                genre: formData.get('genre'),
+                theme: formData.get('theme'),
+                initial_idea: formData.get('initial_idea')
+            };
+            
+            try {
+                const response = await fetch('/api/movies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(movieData)
+                });
+                
+                if (response.ok) {
+                    const movie = await response.json();
+                    showMessage('تم إنشاء الفيلم بنجاح!', 'success');
+                    e.target.reset();
+                    loadMovies();
+                } else {
+                    showMessage('خطأ في إنشاء الفيلم', 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد السيناريو
+        document.getElementById('generateScenario').addEventListener('click', async function() {
+            if (!selectedMovieId) return;
+            
+            showLoading('جاري توليد السيناريو...');
+            
+            try {
+                const response = await fetch(`/api/movies/${selectedMovieId}/generate-scenario`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('السيناريو المولد', result.scenario);
+                    loadMovies(); // تحديث قائمة الأفلام
+                } else {
+                    showMessage('خطأ في توليد السيناريو: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد الشخصيات
+        document.getElementById('generateCharacters').addEventListener('click', async function() {
+            if (!selectedMovieId) return;
+            
+            showLoading('جاري توليد الشخصيات...');
+            
+            try {
+                const response = await fetch(`/api/movies/${selectedMovieId}/generate-characters`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const charactersText = JSON.stringify(result.characters, null, 2);
+                    showResult('الشخصيات المولدة', charactersText);
+                    loadMovies();
+                } else {
+                    showMessage('خطأ في توليد الشخصيات: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // تقسيم المشاهد
+        document.getElementById('generateScenes').addEventListener('click', async function() {
+            if (!selectedMovieId) return;
+            
+            showLoading('جاري تقسيم المشاهد...');
+            
+            try {
+                const response = await fetch(`/api/movies/${selectedMovieId}/generate-scenes`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const scenesText = JSON.stringify(result.scenes, null, 2);
+                    showResult('المشاهد المقسمة', scenesText);
+                    loadMovies();
+                } else {
+                    showMessage('خطأ في تقسيم المشاهد: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // عرض رسالة
+        function showMessage(message, type) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `<div class="${type}">${message}</div>`;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // عرض حالة التحميل
+        function showLoading(message) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // عرض النتيجة
+        function showResult(title, content) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <h4>${title}</h4>
+                <div class="scenario-text">${content}</div>
+            `;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // تحويل حالة الفيلم إلى نص
+        function getStatusText(status) {
+            const statusMap = {
+                'draft': 'مسودة',
+                'scenario_generated': 'تم توليد السيناريو',
+                'characters_generated': 'تم توليد الشخصيات',
+                'scenes_generated': 'تم تقسيم المشاهد',
+                'in_progress': 'قيد التطوير',
+                'completed': 'مكتمل'
+            };
+            return statusMap[status] || status;
+        }
+    </script>
+</body>
+</html>
+

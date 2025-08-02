@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وكيل الذكاء الاصطناعي لإنتاج الأفلام - توليد المحتوى البصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result-section.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .gallery-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .gallery-item-info {
+            padding: 15px;
+        }
+        
+        .gallery-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .gallery-item-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        
+        .task-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-queued { background: #ffeaa7; color: #d63031; }
+        .status-processing { background: #74b9ff; color: #0984e3; }
+        .status-completed { background: #00b894; color: #00a085; }
+        .status-failed { background: #fd79a8; color: #e84393; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 وكيل الذكاء الاصطناعي لإنتاج الأفلام</h1>
+            <p>وحدة توليد المحتوى البصري</p>
+        </div>
+        
+        <div class="content">
+            <!-- التبويبات -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('generate')">توليد المحتوى</button>
+                <button class="tab" onclick="showTab('gallery')">معرض الصور</button>
+                <button class="tab" onclick="showTab('tasks')">المهام</button>
+            </div>
+            
+            <!-- تبويب توليد المحتوى -->
+            <div id="generate" class="tab-content active">
+                <!-- توليد صورة عامة -->
+                <div class="form-section">
+                    <h3>توليد صورة عامة</h3>
+                    <form id="imageForm">
+                        <div class="form-group">
+                            <label for="imagePrompt">وصف الصورة:</label>
+                            <textarea id="imagePrompt" name="prompt" placeholder="اكتب وصفاً مفصلاً للصورة التي تريد توليدها..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="movieId">معرف الفيلم:</label>
+                            <input type="number" id="movieId" name="movie_id" placeholder="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sceneId">معرف المشهد (اختياري):</label>
+                            <input type="number" id="sceneId" name="scene_id" placeholder="1">
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="width">العرض:</label>
+                                <select id="width" name="width">
+                                    <option value="512">512</option>
+                                    <option value="768">768</option>
+                                    <option value="1024">1024</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" style="flex: 1;">
+                                <label for="height">الارتفاع:</label>
+                                <select id="height" name="height">
+                                    <option value="512">512</option>
+                                    <option value="768">768</option>
+                                    <option value="1024">1024</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">توليد الصورة</button>
+                    </form>
+                </div>
+                
+                <!-- توليد صورة شخصية -->
+                <div class="form-section">
+                    <h3>توليد صورة شخصية</h3>
+                    <form id="characterForm">
+                        <div class="form-group">
+                            <label for="characterDescription">وصف الشخصية:</label>
+                            <textarea id="characterDescription" name="character_description" placeholder="اكتب وصفاً مفصلاً للشخصية..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="characterStyle">النمط:</label>
+                            <select id="characterStyle" name="style">
+                                <option value="realistic">واقعي</option>
+                                <option value="cartoon">كرتوني</option>
+                                <option value="anime">أنمي</option>
+                                <option value="artistic">فني</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="characterMovieId">معرف الفيلم:</label>
+                            <input type="number" id="characterMovieId" name="movie_id" placeholder="1">
+                        </div>
+                        
+                        <button type="submit" class="btn">توليد صورة الشخصية</button>
+                    </form>
+                </div>
+                
+                <!-- توليد صورة مشهد -->
+                <div class="form-section">
+                    <h3>توليد صورة مشهد</h3>
+                    <form id="sceneForm">
+                        <div class="form-group">
+                            <label for="sceneDescription">وصف المشهد:</label>
+                            <textarea id="sceneDescription" name="scene_description" placeholder="اكتب وصفاً مفصلاً للمشهد..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sceneMood">المزاج:</label>
+                            <select id="sceneMood" name="mood">
+                                <option value="neutral">محايد</option>
+                                <option value="happy">سعيد</option>
+                                <option value="sad">حزين</option>
+                                <option value="dramatic">درامي</option>
+                                <option value="peaceful">هادئ</option>
+                                <option value="action">أكشن</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="sceneMovieId">معرف الفيلم:</label>
+                                <input type="number" id="sceneMovieId" name="movie_id" placeholder="1">
+                            </div>
+                            
+                            <div class="form-group" style="flex: 1;">
+                                <label for="sceneSceneId">معرف المشهد:</label>
+                                <input type="number" id="sceneSceneId" name="scene_id" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">توليد صورة المشهد</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- تبويب معرض الصور -->
+            <div id="gallery" class="tab-content">
+                <div class="form-section">
+                    <h3>معرض الصور المولدة</h3>
+                    <div class="gallery" id="imageGallery">
+                        <!-- سيتم ملء الصور هنا -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- تبويب المهام -->
+            <div id="tasks" class="tab-content">
+                <div class="form-section">
+                    <h3>حالة المهام</h3>
+                    <div id="tasksList">
+                        <!-- سيتم ملء المهام هنا -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- منطقة النتائج -->
+            <div id="results" class="result-section">
+                <h3>النتائج</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let taskCheckInterval = null;
+        
+        // تحميل البيانات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGallery();
+            loadTasks();
+        });
+        
+        // تبديل التبويبات
+        function showTab(tabName) {
+            // إخفاء جميع التبويبات
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة التفعيل من جميع الأزرار
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // تفعيل التبويب المحدد
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // تحديث البيانات حسب التبويب
+            if (tabName === 'gallery') {
+                loadGallery();
+            } else if (tabName === 'tasks') {
+                loadTasks();
+            }
+        }
+        
+        // توليد صورة عامة
+        document.getElementById('imageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                prompt: formData.get('prompt'),
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: formData.get('scene_id') ? parseInt(formData.get('scene_id')) : null,
+                parameters: {
+                    width: parseInt(formData.get('width')),
+                    height: parseInt(formData.get('height'))
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء توليد الصورة!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في توليد الصورة: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد صورة شخصية
+        document.getElementById('characterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                character_description: formData.get('character_description'),
+                style: formData.get('style'),
+                movie_id: parseInt(formData.get('movie_id')) || 1
+            };
+            
+            try {
+                const response = await fetch('/api/generate-character-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء توليد صورة الشخصية!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في توليد صورة الشخصية: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد صورة مشهد
+        document.getElementById('sceneForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                scene_description: formData.get('scene_description'),
+                mood: formData.get('mood'),
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: parseInt(formData.get('scene_id')) || 1
+            };
+            
+            try {
+                const response = await fetch('/api/generate-scene-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء توليد صورة المشهد!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في توليد صورة المشهد: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // مراقبة حالة المهمة
+        function startTaskMonitoring(taskId) {
+            showLoading('جاري توليد المحتوى...');
+            
+            taskCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`);
+                    const task = await response.json();
+                    
+                    updateProgress(task.progress || 0);
+                    
+                    if (task.status === 'completed') {
+                        clearInterval(taskCheckInterval);
+                        showMessage('تم توليد المحتوى بنجاح!', 'success');
+                        loadGallery();
+                        loadTasks();
+                    } else if (task.status === 'failed') {
+                        clearInterval(taskCheckInterval);
+                        showMessage('فشل في توليد المحتوى: ' + task.error_message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error checking task status:', error);
+                }
+            }, 2000);
+        }
+        
+        // تحديث شريط التقدم
+        function updateProgress(progress) {
+            const progressBar = document.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        }
+        
+        // تحميل معرض الصور
+        async function loadGallery() {
+            try {
+                const response = await fetch('/api/visual-content');
+                const content = await response.json();
+                
+                const gallery = document.getElementById('imageGallery');
+                if (content.length === 0) {
+                    gallery.innerHTML = '<p>لا توجد صور مولدة بعد.</p>';
+                } else {
+                    gallery.innerHTML = content.map(item => `
+                        <div class="gallery-item">
+                            <img src="/api/files/${item.file_path.split('/').pop()}" alt="${item.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtmE2Kcg2YrZhdmD2YYg2KrYrdmF2YrZhCDYp9mE2LXZiNix2Kk8L3RleHQ+PC9zdmc+'">
+                            <div class="gallery-item-info">
+                                <div class="gallery-item-title">${item.title || 'صورة مولدة'}</div>
+                                <div class="gallery-item-description">${item.description || item.prompt || 'لا يوجد وصف'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المعرض:', error);
+            }
+        }
+        
+        // تحميل قائمة المهام
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const tasks = await response.json();
+                
+                const tasksList = document.getElementById('tasksList');
+                if (tasks.length === 0) {
+                    tasksList.innerHTML = '<p>لا توجد مهام.</p>';
+                } else {
+                    tasksList.innerHTML = tasks.map(task => `
+                        <div class="task-item">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4>${getTaskTypeText(task.task_type)} - ${task.id}</h4>
+                                <span class="task-status status-${task.status}">${getStatusText(task.status)}</span>
+                            </div>
+                            <p><strong>الوصف:</strong> ${task.prompt}</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.progress || 0}%"></div>
+                            </div>
+                            <small>تاريخ الإنشاء: ${new Date(task.created_at).toLocaleString('ar')}</small>
+                            ${task.error_message ? `<div class="error" style="margin-top: 10px;">${task.error_message}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المهام:', error);
+            }
+        }
+        
+        // عرض رسالة
+        function showMessage(message, type) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `<div class="${type}">${message}</div>`;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // عرض حالة التحميل
+        function showLoading(message) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>${message}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // تحويل نوع المهمة إلى نص
+        function getTaskTypeText(taskType) {
+            const typeMap = {
+                'image': 'توليد صورة',
+                'character_image': 'صورة شخصية',
+                'scene_image': 'صورة مشهد',
+                'video': 'توليد فيديو'
+            };
+            return typeMap[taskType] || taskType;
+        }
+        
+        // تحويل حالة المهمة إلى نص
+        function getStatusText(status) {
+            const statusMap = {
+                'queued': 'في الانتظار',
+                'processing': 'قيد المعالجة',
+                'completed': 'مكتمل',
+                'failed': 'فشل'
+            };
+            return statusMap[status] || status;
+        }
+    </script>
+</body>
+</html>
+

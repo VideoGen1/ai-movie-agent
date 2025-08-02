@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  scenario-generator:
+    build:
+      context: ./scenario_generator
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE}
+    volumes:
+      - ./data/scenario:/app/data
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+
+  visual-generator:
+    build:
+      context: ./visual_generator
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./data/visual:/app/generated_images
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  audio-generator:
+    build:
+      context: ./audio_generator
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./data/audio:/app/generated_audio
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+
+  movie-editor:
+    build:
+      context: ./movie_editor
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./data/movies:/app/generated_movies
+      - ./data/scenario:/app/scenario_data
+      - ./data/visual:/app/visual_data
+      - ./data/audio:/app/audio_data
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+    depends_on:
+      - scenario-generator
+      - visual-generator
+      - audio-generator
+
+  ai-movie-studio:
+    build:
+      context: ./ai-movie-studio
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+    depends_on:
+      - scenario-generator
+      - visual-generator
+      - audio-generator
+      - movie-editor
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    restart: unless-stopped
+    networks:
+      - ai-movie-network
+    depends_on:
+      - ai-movie-studio
+
+networks:
+  ai-movie-network:
+    driver: bridge
+
+volumes:
+  scenario-data:
+  visual-data:
+  audio-data:
+  movie-data:
+

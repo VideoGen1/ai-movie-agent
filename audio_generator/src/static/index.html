@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وكيل الذكاء الاصطناعي لإنتاج الأفلام - توليد المحتوى الصوتي</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            margin-bottom: -2px;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result-section.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .audio-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .audio-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .audio-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .audio-item-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .audio-item-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .audio-player {
+            flex: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        
+        .task-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-queued { background: #ffeaa7; color: #d63031; }
+        .status-processing { background: #74b9ff; color: #0984e3; }
+        .status-completed { background: #00b894; color: #00a085; }
+        .status-failed { background: #fd79a8; color: #e84393; }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .audio-type-icon {
+            font-size: 24px;
+            margin-left: 10px;
+        }
+        
+        .duration-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 وكيل الذكاء الاصطناعي لإنتاج الأفلام</h1>
+            <p>وحدة توليد المحتوى الصوتي</p>
+        </div>
+        
+        <div class="content">
+            <!-- التبويبات -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('tts')">تحويل النص لكلام</button>
+                <button class="tab" onclick="showTab('music')">توليد الموسيقى</button>
+                <button class="tab" onclick="showTab('effects')">المؤثرات الصوتية</button>
+                <button class="tab" onclick="showTab('mix')">خلط الأصوات</button>
+                <button class="tab" onclick="showTab('gallery')">مكتبة الأصوات</button>
+                <button class="tab" onclick="showTab('tasks')">المهام</button>
+            </div>
+            
+            <!-- تبويب تحويل النص لكلام -->
+            <div id="tts" class="tab-content active">
+                <div class="form-section">
+                    <h3>🎤 تحويل النص إلى كلام</h3>
+                    <form id="ttsForm">
+                        <div class="form-group">
+                            <label for="ttsText">النص المراد تحويله:</label>
+                            <textarea id="ttsText" name="text" placeholder="اكتب النص الذي تريد تحويله إلى كلام..." required></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ttsVoiceType">نوع الصوت:</label>
+                                <select id="ttsVoiceType" name="voice_type">
+                                    <option value="default">افتراضي</option>
+                                    <option value="male">ذكر</option>
+                                    <option value="female">أنثى</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ttsLanguage">اللغة:</label>
+                                <select id="ttsLanguage" name="language">
+                                    <option value="ar">العربية</option>
+                                    <option value="en">الإنجليزية</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ttsEngine">المحرك:</label>
+                                <select id="ttsEngine" name="engine">
+                                    <option value="gtts">Google TTS</option>
+                                    <option value="pyttsx3">Pyttsx3</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ttsMovieId">معرف الفيلم:</label>
+                                <input type="number" id="ttsMovieId" name="movie_id" placeholder="1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ttsSceneId">معرف المشهد (اختياري):</label>
+                                <input type="number" id="ttsSceneId" name="scene_id" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">🎤 توليد الصوت</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- تبويب توليد الموسيقى -->
+            <div id="music" class="tab-content">
+                <div class="form-section">
+                    <h3>🎼 توليد الموسيقى الخلفية</h3>
+                    <form id="musicForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="musicDuration">المدة (بالثواني):</label>
+                                <input type="number" id="musicDuration" name="duration" value="30" min="5" max="300">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="musicMood">المزاج:</label>
+                                <select id="musicMood" name="mood">
+                                    <option value="neutral">محايد</option>
+                                    <option value="happy">سعيد</option>
+                                    <option value="sad">حزين</option>
+                                    <option value="dramatic">درامي</option>
+                                    <option value="peaceful">هادئ</option>
+                                    <option value="action">أكشن</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="musicTempo">الإيقاع (BPM):</label>
+                                <input type="number" id="musicTempo" name="tempo" value="120" min="60" max="200">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="musicMovieId">معرف الفيلم:</label>
+                                <input type="number" id="musicMovieId" name="movie_id" placeholder="1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="musicSceneId">معرف المشهد (اختياري):</label>
+                                <input type="number" id="musicSceneId" name="scene_id" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">🎼 توليد الموسيقى</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- تبويب المؤثرات الصوتية -->
+            <div id="effects" class="tab-content">
+                <div class="form-section">
+                    <h3>🔊 توليد المؤثرات الصوتية</h3>
+                    <form id="effectsForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="effectType">نوع المؤثر:</label>
+                                <select id="effectType" name="effect_type">
+                                    <option value="footsteps">خطوات أقدام</option>
+                                    <option value="rain">صوت مطر</option>
+                                    <option value="wind">صوت رياح</option>
+                                    <option value="door_knock">طرق الباب</option>
+                                    <option value="applause">تصفيق</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="effectDuration">المدة (بالثواني):</label>
+                                <input type="number" id="effectDuration" name="duration" value="2" min="0.5" max="30" step="0.1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="effectMovieId">معرف الفيلم:</label>
+                                <input type="number" id="effectMovieId" name="movie_id" placeholder="1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="effectSceneId">معرف المشهد (اختياري):</label>
+                                <input type="number" id="effectSceneId" name="scene_id" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">🔊 توليد المؤثر</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- تبويب خلط الأصوات -->
+            <div id="mix" class="tab-content">
+                <div class="form-section">
+                    <h3>🎚️ خلط المسارات الصوتية</h3>
+                    <form id="mixForm">
+                        <div class="form-group">
+                            <label>اختر المسارات الصوتية للخلط:</label>
+                            <div id="audioTracksList">
+                                <!-- سيتم ملء قائمة المسارات هنا -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mixMovieId">معرف الفيلم:</label>
+                                <input type="number" id="mixMovieId" name="movie_id" placeholder="1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="mixSceneId">معرف المشهد (اختياري):</label>
+                                <input type="number" id="mixSceneId" name="scene_id" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">🎚️ خلط الأصوات</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- تبويب مكتبة الأصوات -->
+            <div id="gallery" class="tab-content">
+                <div class="form-section">
+                    <h3>🎵 مكتبة الأصوات المولدة</h3>
+                    <div class="audio-gallery" id="audioGallery">
+                        <!-- سيتم ملء الأصوات هنا -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- تبويب المهام -->
+            <div id="tasks" class="tab-content">
+                <div class="form-section">
+                    <h3>📋 حالة المهام الصوتية</h3>
+                    <div id="tasksList">
+                        <!-- سيتم ملء المهام هنا -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- منطقة النتائج -->
+            <div id="results" class="result-section">
+                <h3>النتائج</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let taskCheckInterval = null;
+        
+        // تحميل البيانات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAudioGallery();
+            loadTasks();
+            loadAudioTracksForMixing();
+        });
+        
+        // تبديل التبويبات
+        function showTab(tabName) {
+            // إخفاء جميع التبويبات
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة التفعيل من جميع الأزرار
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // تفعيل التبويب المحدد
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // تحديث البيانات حسب التبويب
+            if (tabName === 'gallery') {
+                loadAudioGallery();
+            } else if (tabName === 'tasks') {
+                loadTasks();
+            } else if (tabName === 'mix') {
+                loadAudioTracksForMixing();
+            }
+        }
+        
+        // تحويل النص إلى كلام
+        document.getElementById('ttsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                text: formData.get('text'),
+                voice_type: formData.get('voice_type'),
+                language: formData.get('language'),
+                engine: formData.get('engine'),
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: formData.get('scene_id') ? parseInt(formData.get('scene_id')) : null
+            };
+            
+            try {
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء تحويل النص إلى كلام!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في تحويل النص: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد الموسيقى
+        document.getElementById('musicForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                duration: parseInt(formData.get('duration')),
+                mood: formData.get('mood'),
+                tempo: parseInt(formData.get('tempo')),
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: formData.get('scene_id') ? parseInt(formData.get('scene_id')) : null
+            };
+            
+            try {
+                const response = await fetch('/api/generate-music', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء توليد الموسيقى!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في توليد الموسيقى: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // توليد المؤثرات الصوتية
+        document.getElementById('effectsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                effect_type: formData.get('effect_type'),
+                duration: parseFloat(formData.get('duration')),
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: formData.get('scene_id') ? parseInt(formData.get('scene_id')) : null
+            };
+            
+            try {
+                const response = await fetch('/api/generate-sound-effect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء توليد المؤثر الصوتي!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في توليد المؤثر: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // خلط الأصوات
+        document.getElementById('mixForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const selectedTracks = [];
+            const volumes = [];
+            
+            document.querySelectorAll('.track-checkbox:checked').forEach(checkbox => {
+                selectedTracks.push(parseInt(checkbox.value));
+                const volumeSlider = document.getElementById(`volume_${checkbox.value}`);
+                volumes.push(parseFloat(volumeSlider.value));
+            });
+            
+            if (selectedTracks.length === 0) {
+                showMessage('يرجى اختيار مسار صوتي واحد على الأقل', 'error');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const data = {
+                audio_ids: selectedTracks,
+                volumes: volumes,
+                movie_id: parseInt(formData.get('movie_id')) || 1,
+                scene_id: formData.get('scene_id') ? parseInt(formData.get('scene_id')) : null
+            };
+            
+            try {
+                const response = await fetch('/api/mix-audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTaskId = result.task_id;
+                    showMessage('تم بدء خلط الأصوات!', 'success');
+                    startTaskMonitoring(result.task_id);
+                } else {
+                    showMessage('خطأ في خلط الأصوات: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('خطأ في الاتصال بالخادم', 'error');
+            }
+        });
+        
+        // مراقبة حالة المهمة
+        function startTaskMonitoring(taskId) {
+            showLoading('جاري معالجة المحتوى الصوتي...');
+            
+            taskCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`);
+                    const task = await response.json();
+                    
+                    updateProgress(task.progress || 0);
+                    
+                    if (task.status === 'completed') {
+                        clearInterval(taskCheckInterval);
+                        showMessage('تم توليد المحتوى الصوتي بنجاح!', 'success');
+                        loadAudioGallery();
+                        loadTasks();
+                        loadAudioTracksForMixing();
+                    } else if (task.status === 'failed') {
+                        clearInterval(taskCheckInterval);
+                        showMessage('فشل في توليد المحتوى الصوتي: ' + task.error_message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error checking task status:', error);
+                }
+            }, 2000);
+        }
+        
+        // تحديث شريط التقدم
+        function updateProgress(progress) {
+            const progressBar = document.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        }
+        
+        // تحميل مكتبة الأصوات
+        async function loadAudioGallery() {
+            try {
+                const response = await fetch('/api/audio-content');
+                const content = await response.json();
+                
+                const gallery = document.getElementById('audioGallery');
+                if (content.length === 0) {
+                    gallery.innerHTML = '<p>لا توجد ملفات صوتية مولدة بعد.</p>';
+                } else {
+                    gallery.innerHTML = content.map(item => `
+                        <div class="audio-item">
+                            <div class="audio-item-title">
+                                <span class="audio-type-icon">${getAudioTypeIcon(item.content_type)}</span>
+                                ${item.title || 'ملف صوتي مولد'}
+                            </div>
+                            <div class="audio-item-description">
+                                ${item.description || item.text_content || 'لا يوجد وصف'}
+                            </div>
+                            <div class="duration-info">
+                                المدة: ${item.duration ? item.duration.toFixed(1) + ' ثانية' : 'غير محدد'}
+                            </div>
+                            <div class="audio-controls">
+                                <audio class="audio-player" controls>
+                                    <source src="/api/files/${item.file_path ? item.file_path.split('/').pop() : ''}" type="audio/wav">
+                                    متصفحك لا يدعم تشغيل الملفات الصوتية.
+                                </audio>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل مكتبة الأصوات:', error);
+            }
+        }
+        
+        // تحميل قائمة المهام
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const tasks = await response.json();
+                
+                const tasksList = document.getElementById('tasksList');
+                if (tasks.length === 0) {
+                    tasksList.innerHTML = '<p>لا توجد مهام صوتية.</p>';
+                } else {
+                    tasksList.innerHTML = tasks.map(task => `
+                        <div class="task-item">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4>${getTaskTypeText(task.task_type)} - ${task.id}</h4>
+                                <span class="task-status status-${task.status}">${getStatusText(task.status)}</span>
+                            </div>
+                            <p><strong>المحتوى:</strong> ${task.text_content || 'مهمة صوتية'}</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.progress || 0}%"></div>
+                            </div>
+                            <small>تاريخ الإنشاء: ${new Date(task.created_at).toLocaleString('ar')}</small>
+                            ${task.error_message ? `<div class="error" style="margin-top: 10px;">${task.error_message}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المهام:', error);
+            }
+        }
+        
+        // تحميل المسارات الصوتية للخلط
+        async function loadAudioTracksForMixing() {
+            try {
+                const response = await fetch('/api/audio-content');
+                const content = await response.json();
+                
+                const tracksList = document.getElementById('audioTracksList');
+                if (content.length === 0) {
+                    tracksList.innerHTML = '<p>لا توجد مسارات صوتية متاحة للخلط.</p>';
+                } else {
+                    tracksList.innerHTML = content.map(item => `
+                        <div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background: white; border-radius: 8px;">
+                            <input type="checkbox" class="track-checkbox" value="${item.id}" id="track_${item.id}" style="margin-left: 10px;">
+                            <label for="track_${item.id}" style="flex: 1; margin: 0;">
+                                <strong>${item.title || 'ملف صوتي'}</strong><br>
+                                <small>${item.description || item.text_content || 'لا يوجد وصف'}</small>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label for="volume_${item.id}" style="margin: 0;">مستوى الصوت:</label>
+                                <input type="range" id="volume_${item.id}" min="0" max="2" step="0.1" value="1" style="width: 100px;">
+                                <span id="volume_display_${item.id}">1.0</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // إضافة مستمعات لتحديث عرض مستوى الصوت
+                    content.forEach(item => {
+                        const volumeSlider = document.getElementById(`volume_${item.id}`);
+                        const volumeDisplay = document.getElementById(`volume_display_${item.id}`);
+                        
+                        volumeSlider.addEventListener('input', function() {
+                            volumeDisplay.textContent = parseFloat(this.value).toFixed(1);
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المسارات للخلط:', error);
+            }
+        }
+        
+        // عرض رسالة
+        function showMessage(message, type) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `<div class="${type}">${message}</div>`;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // عرض حالة التحميل
+        function showLoading(message) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>${message}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // الحصول على أيقونة نوع الصوت
+        function getAudioTypeIcon(contentType) {
+            const iconMap = {
+                'voice': '🎤',
+                'music': '🎼',
+                'sound_effect': '🔊',
+                'mixed': '🎚️',
+                'narration': '📢'
+            };
+            return iconMap[contentType] || '🎵';
+        }
+        
+        // تحويل نوع المهمة إلى نص
+        function getTaskTypeText(taskType) {
+            const typeMap = {
+                'tts': 'تحويل النص لكلام',
+                'music': 'توليد موسيقى',
+                'sound_effect': 'مؤثر صوتي',
+                'mix': 'خلط أصوات',
+                'voice_clone': 'استنساخ صوت'
+            };
+            return typeMap[taskType] || taskType;
+        }
+        
+        // تحويل حالة المهمة إلى نص
+        function getStatusText(status) {
+            const statusMap = {
+                'queued': 'في الانتظار',
+                'processing': 'قيد المعالجة',
+                'completed': 'مكتمل',
+                'failed': 'فشل'
+            };
+            return statusMap[status] || status;
+        }
+    </script>
+</body>
+</html>
+
