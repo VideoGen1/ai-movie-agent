@@ -1,0 +1,66 @@
+services:
+  # خدمة السيناريو
+  - type: web
+    name: ai-movie-scenario
+    env: python
+    plan: free
+    buildCommand: "cd scenario_generator && pip install -r requirements.txt"
+    startCommand: "cd scenario_generator && python src/main.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: FLASK_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+    
+  # خدمة المحتوى البصري
+  - type: web
+    name: ai-movie-visual
+    env: python
+    plan: free
+    buildCommand: "cd visual_generator && pip install -r requirements.txt"
+    startCommand: "cd visual_generator && python src/main.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: FLASK_ENV
+        value: production
+    
+  # خدمة المحتوى الصوتي
+  - type: web
+    name: ai-movie-audio
+    env: python
+    plan: free
+    buildCommand: "cd audio_generator && pip install -r requirements.txt"
+    startCommand: "cd audio_generator && python src/main.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: FLASK_ENV
+        value: production
+    
+  # خدمة المونتاج
+  - type: web
+    name: ai-movie-editor
+    env: python
+    plan: free
+    buildCommand: "cd movie_editor && pip install -r requirements.txt"
+    startCommand: "cd movie_editor && python src/main.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: FLASK_ENV
+        value: production
+    
+  # الواجهة الأمامية
+  - type: web
+    name: ai-movie-frontend
+    env: node
+    plan: free
+    buildCommand: "cd ai-movie-studio && npm install && npm run build"
+    startCommand: "cd ai-movie-studio && npm run preview -- --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PORT
+        value: 10000
+
