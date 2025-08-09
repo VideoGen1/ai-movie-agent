@@ -42,14 +42,14 @@ start_service() {
     
     # Start the service in background
     if [ "$service_name" = "AI Movie Studio (Frontend)" ]; then
-        npm run dev -- --host > ../logs/${service_name,,}.log 2>&1 &
+        npm run dev -- --host > "../logs/${service_name,,}.log" 2>&1 &
     else
-        python src/main.py > ../logs/${service_name,,}.log 2>&1 &
+        python src/main.py > "../logs/${service_name,,}.log" 2>&1 &
     fi
     
     local pid=$!
     echo "   Started with PID: $pid"
-    echo $pid > ../pids/${service_name,,}.pid
+    echo $pid > "../pids/${service_name,,}.pid"
     
     cd ..
     return 0
